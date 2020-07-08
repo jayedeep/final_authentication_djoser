@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import validate_email
+from phonenumber_field.modelfields import PhoneNumberField
 
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
@@ -127,12 +129,12 @@ collagelist=(
         ('INSTITUTE OF INFRASTRUCTURE, TECHNOLOGY,RESEARCH AND MANAGEMENT, AHMEDABAD','INSTITUTE OF INFRASTRUCTURE, TECHNOLOGY,RESEARCH AND MANAGEMENT, AHMEDABAD'),
 )
 
-user_type_data = ((1, "College"), (2, "Professor"), (3, "Student"))
+user_type_data = (('College', "College"), ('Professor', "Professor"), ("Student", "Student"))
 
 class User(AbstractUser):
     user_type=models.CharField(max_length=100,choices=user_type_data)
     college=models.CharField(max_length=300,choices=collagelist)
-    email = models.EmailField(verbose_name=True,max_length=255,unique=True)
+    email = models.EmailField(verbose_name='email',max_length=255,unique=True)
 
     REQUIRED_FIELDS = ['username','college','first_name','last_name','user_type']
 
@@ -140,3 +142,41 @@ class User(AbstractUser):
 
     def get_username(self):
         return self.email
+
+
+class College(models.Model):
+    name = models.CharField(max_length=300,choices=collagelist,blank=False)
+    phone = PhoneNumberField(null=False, blank=False, unique=True)
+    password=models.CharField(max_length=20,blank=False)
+    objects=models.Manager()
+
+    def __str__(self):
+        return self.name
+
+
+class Professors(models.Model):
+    Professors_ROLE = (
+        ("HOD", "HOD"),
+        ("Professor", "Professor"),
+    )
+    dept = (
+        ('Computer', 'Computer'),
+        ('Machenical', 'Mechenical'),
+        ('Electrical', 'Electrical'),
+        ('Civil', 'Civil'),
+        ('Aeronautical', 'Aeronautical'),
+        ('Information Technology', 'Information Technology'),
+        ('Electronics & Communication', 'Electronics & Communication'),
+        ('Automobile', 'Automobile'),
+        ('Biomedical', 'Biomedical'),
+        ('Computer Sci.', 'Computer Sci.'),
+
+    )
+    college = models.ForeignKey('College', related_name='professor', on_delete=models.CASCADE)
+    department = models.CharField(max_length=100, blank=False,choices=dept)
+    phone = PhoneNumberField(null=False, blank=False, unique=True)
+    role = models.CharField(max_length=20, choices=Professors_ROLE, default='Professor')
+    objects=models.Manager()
+
+    def __str__(self):
+        return self.name
